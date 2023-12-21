@@ -1,7 +1,7 @@
 const cheerio = require('cheerio');
 const axios = require('axios');
-const dollarRate = require('./../models/dollarRateModel');
-const vatModel = require('./../models/vatModel');
+const dollarRate = require('./../models/dollarrate.model');
+const vatModel = require('./../models/vat.model');
 const moment = require("moment");
 const  scrapeVatData = async (html)=> {
     const $ = await cheerio.load(html);

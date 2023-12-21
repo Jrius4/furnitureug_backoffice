@@ -12,6 +12,15 @@ const currencyController = {
         }
     },
 
+    // getCurrencyRates: async (req,res,next)=>{
+    //     try {
+    //         const results = await webScrapService.getForex();
+    //         return responseUtil.sendSuccess(res,{results})
+    //     } catch (error) {
+    //         next(error)
+    //     }
+    // },
+
     computeRates: async (req,res,next)=>{
         try {
             const {fromCurr,toCurr, amount} = req.body;
