@@ -10,8 +10,18 @@ const app = express();
 // middleware, parsers, etc.
 app.use(express.json());
 // connect to Mongodb
-mongoose.connect(config.database.url,{ useNewUrlParser: true, useUnifiedTopology: true })
-mongoose.connection.on('error',console.error.bind(console, 'MongoDB connection error:'))
+mongoose.set('strictQuery',false);
+const connectDB = async () => {
+    try {
+    await  mongoose.connect(config.database.url,{ useNewUrlParser: true, useUnifiedTopology: true })
+    await  mongoose.connection.on('error',console.error.bind(console, 'MongoDB connection error:'))
+    } catch (error) {
+        console.error('failed to connect',error);
+        process.exit(1);
+    }
+}
+
+
 // app schedules
 cron.schedule("*/30 * * * *", ()=>{
 
@@ -49,9 +59,11 @@ app.use((err,req,res,next)=>{
 
 });
 const PORT = process.env.PORT || 6500;
+connectDB.then(()=>{
+    app.listen(PORT,()=>{
+        console.log(`Server is running on http://localhost:${PORT}`);
+    });
+})
 
-app.listen(PORT,()=>{
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
 
 
