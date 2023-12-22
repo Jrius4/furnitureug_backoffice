@@ -16,7 +16,9 @@ router.post('/register', userController.register);
 router.post('/login', authController.login);
 router.get('/dollar-rates', currencyController.getCurrencyRates);
 router.post('/dollar-rates', currencyController.computeRates);
+router.get('/load-dollar-rates', currencyController.loadForex);
 router.get('/vat-rates', currencyController.getVat);
+router.get('/load-vat-rates', currencyController.loadVat);
 
 
 // Protected routes

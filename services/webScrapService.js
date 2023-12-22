@@ -25,23 +25,34 @@ const scrapeVatData = async (html) => {
 
 
     vatData.map(async (e, i) => {
-        const curr = await dollarRate.findOne({ country: e.country });
-        const vatItem = await vatModel.findOneAndReplace({ country: e.country }, { ...e });
-        if (curr != null) {
-            curr.vat = e.vatRate || null;
-            curr.save();
+        // const curr = await dollarRate.findOne({ country: e.country });
+        // const vatItem = await vatModel.findOneAndReplace({ country: e.country }, { ...e });
+        // if (curr != null) {
+        //     curr.vat = e.vatRate || null;
+        //     curr.save();
 
-            const { vat, op_rate, country, currency, code } = curr;
+        //     const { vat, op_rate, country, currency, code } = curr;
 
-            const vatItem = await vatModel.findOneAndReplace({ country: e.country }, { vat, op_rate, country, currency, code });
+        //     const vatItem = await vatModel.findOneAndReplace({ country: e.country }, { vat, op_rate, country, currency, code });
 
-        } else {
-            const vatItem = await vatModel.create(e);
-        }
-        if (i <= 10) {
-            console.log({ curr })
+        // } else {
+        //     const vatItem = await vatModel.create(e);
+        // }
+        // if (i <= 10) {
+        //     console.log({ curr })
 
-        }
+        // }
+        let filter = await vatModel.findOne({ country: e.country }).then(async (docs) => {
+            if (docs === null) {
+                e.createdAt = moment(Date.now()).format();
+                e.updatedAt = moment(Date.now()).format();
+                await vatModel.create(e);
+            } else {
+                e.updatedAt = moment(Date.now()).format();
+                await vatModel.findByIdAndUpdate(docs.id, { ...e });
+
+            }
+        })
 
 
     });
@@ -132,6 +143,13 @@ const webScrapData = {
         }
         return rst;
 
+    },
+    fetchVat: async () => {
+        try {
+            return await vatModel.find();
+        } catch (error) {
+            console.error(error);
+        }
     },
     getWorldVat: async () => {
         try {

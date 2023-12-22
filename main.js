@@ -44,7 +44,7 @@ cron.schedule("15 8 * * *", ()=>{
 
 
 // list all routes
-app.use('/', (req,res,next)=>{
+app.get('/', (req,res)=>{
     res.send("testing api")
 });
 

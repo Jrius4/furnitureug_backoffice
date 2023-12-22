@@ -12,14 +12,14 @@ const currencyController = {
         }
     },
 
-    // getCurrencyRates: async (req,res,next)=>{
-    //     try {
-    //         const results = await webScrapService.getForex();
-    //         return responseUtil.sendSuccess(res,{results})
-    //     } catch (error) {
-    //         next(error)
-    //     }
-    // },
+    loadForex: async (req,res,next)=>{
+        try {
+            const results = await webScrapService.getForex();
+            return responseUtil.sendSuccess(res,{results})
+        } catch (error) {
+            next(error)
+        }
+    },
 
     computeRates: async (req,res,next)=>{
         try {
@@ -31,6 +31,14 @@ const currencyController = {
         }
     },
     getVat: async (req,res,next)=>{
+        try {
+            const results = await webScrapService.fetchVat();
+            return responseUtil.sendSuccess(res,{results})
+        } catch (error) {
+            next(error)
+        }
+    },
+    loadVat: async (req,res,next)=>{
         try {
             const results = await webScrapService.getWorldVat();
             return responseUtil.sendSuccess(res,{results})
