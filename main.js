@@ -34,7 +34,9 @@ cron.schedule("*/30 * * * *", ()=>{
 
 
 // list all routes
-app.use('/list-routes', listRoutes);
+app.use('/', (req,res,next)=>{
+    res.send("testing api")
+});
 
 // routes
 app.use("/api",routes);
