@@ -3,7 +3,7 @@ const axios = require('axios');
 const dollarRate = require('./../models/dollarrate.model');
 const vatModel = require('./../models/vat.model');
 const moment = require("moment");
-const  scrapeVatData = async (html)=> {
+const scrapeVatData = async (html) => {
     const $ = await cheerio.load(html);
 
     // Find the table containing VAT information (this may vary based on Wikipedia's structure)
@@ -17,91 +17,106 @@ const  scrapeVatData = async (html)=> {
         const columns = $(row).find('td, th');
         data['country'] = columns.eq(0).text().split('[')[0].trim();
         data['vat'] = parseFloat(`${columns.eq(1).text().split('[')[0].trim()}`.split('%')[0].trim()) || null;
-        
+
         vatData.push(data);
     });
     const results = JSON.stringify(vatData);
     console.log({ vatData: results });
 
 
-   vatData.map(async(e,i)=>{
-        const curr = await dollarRate.findOne({country:e.country});
-        const vatItem = await vatModel.findOneAndReplace({country:e.country},{...e});
-        if(curr != null){
+    vatData.map(async (e, i) => {
+        const curr = await dollarRate.findOne({ country: e.country });
+        const vatItem = await vatModel.findOneAndReplace({ country: e.country }, { ...e });
+        if (curr != null) {
             curr.vat = e.vatRate || null;
             curr.save();
 
-            const { vat,op_rate,country,currency,code  } = curr;
+            const { vat, op_rate, country, currency, code } = curr;
 
-            const vatItem = await vatModel.findOneAndReplace({country:e.country},{vat,op_rate,country,currency,code});
+            const vatItem = await vatModel.findOneAndReplace({ country: e.country }, { vat, op_rate, country, currency, code });
 
-        }else{
+        } else {
             const vatItem = await vatModel.create(e);
         }
-        if(i <= 10){
-        console.log({curr})
+        if (i <= 10) {
+            console.log({ curr })
 
         }
 
 
-   });
+    });
 
     return vatData;
 }
 const webScrapData = {
+    fetchDollarRate: async () => {
+        try {
+            return await dollarRate.find();
+        } catch (error) {
+            console.error(error);
+        }
+
+    },
     getForex: async () => {
 
-        const url = 'https://treasury.un.org/operationalrates/xsqlExRates.php';
+        try {
+            const url = 'https://treasury.un.org/operationalrates/xsqlExRates.php';
 
-        const response = await axios.get(url);
-        const html = response.data;
+            const response = await axios.get(url);
+            const html = response.data;
 
-        const $ = cheerio.load(html);
+            const $ = cheerio.load(html);
 
-        const tableData = [];
+            const tableData = [];
 
-        $('table tr').each((index, element) => {
-            const columns = $(element).find('td');
-            const rowData = {
-                country: $(columns[0]).text().trim(""),
-                code: $(columns[1]).text().trim(""),
-                currency: $(columns[2]).text().trim(""),
-                op_rate: parseFloat(`${$(columns[3]).text().trim("")}`),
-                effective_date: $(columns[4]).text().trim(""),
-
-            }
-
-            tableData.push(rowData);
-        });
-        // await dollarRate.deleteMany({});
-        tableData.map(async (e, i) => {
-            let filter = await dollarRate.findOne({ country: e.country }).then(async (docs) => {
-                if (docs === null) {
-
-
-                    if (e.currency != "" && e.country != "") {
-                        e.createdAt = moment(Date.now()).format();
-                        e.updatedAt = moment(Date.now()).format();
-                        // console.log("Result found",docs,"e",e);
-                        await dollarRate.create(e);
-
-                    }
-                } else {
-                    e.updatedAt = moment(Date.now()).format();
-                    if (i <= 5) {
-                        console.log("docs.id", docs.id, "e", e);
-                    }
-
-                    await dollarRate.findByIdAndUpdate(docs.id, { ...e });
+            $('table tr').each((index, element) => {
+                const columns = $(element).find('td');
+                const rowData = {
+                    country: $(columns[0]).text().trim(""),
+                    code: $(columns[1]).text().trim(""),
+                    currency: $(columns[2]).text().trim(""),
+                    op_rate: parseFloat(`${$(columns[3]).text().trim("")}`),
+                    effective_date: $(columns[4]).text().trim(""),
 
                 }
-            }).catch((err) => console.error(err));
+
+                tableData.push(rowData);
+            });
+            // await dollarRate.deleteMany({});
+            tableData.map(async (e, i) => {
+                let filter = await dollarRate.findOne({ country: e.country }).then(async (docs) => {
+                    if (docs === null) {
+
+
+                        if (e.currency != "" && e.country != "") {
+                            e.createdAt = moment(Date.now()).format();
+                            e.updatedAt = moment(Date.now()).format();
+                            // console.log("Result found",docs,"e",e);
+                            await dollarRate.create(e);
+
+                        }
+                    } else {
+                        e.updatedAt = moment(Date.now()).format();
+                        if (i <= 5) {
+                            console.log("docs.id", docs.id, "e", e);
+                        }
+
+                        await dollarRate.findByIdAndUpdate(docs.id, { ...e });
+
+                    }
+                }).catch((err) => console.error(err));
 
 
 
-        })
+            })
 
-        return await dollarRate.find();
+            return await dollarRate.find();
+        } catch (error) {
+            console.error(error);
+
+        }
+
+
 
 
     },
@@ -119,24 +134,29 @@ const webScrapData = {
 
     },
     getWorldVat: async () => {
-        const url = 'https://en.wikipedia.org/wiki/Value-added_tax';
-        let vatData = null;
-        await axios.get(url)
-            .then(response => {
-                if (response.status === 200) {
-                    vatData = scrapeVatData(response.data);
-                    console.log(vatData);
-                } else {
-                    console.error(`Error: Unable to retrieve data. Status Code: ${response.status}`);
-                }
-            })
-            .catch(error => {
-                console.error(`Error: ${error.message}`);
-            });
+        try {
+            const url = 'https://en.wikipedia.org/wiki/Value-added_tax';
+            let vatData = null;
+            await axios.get(url)
+                .then(response => {
+                    if (response.status === 200) {
+                        vatData = scrapeVatData(response.data);
+                        console.log(vatData);
+                    } else {
+                        console.error(`Error: Unable to retrieve data. Status Code: ${response.status}`);
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error: ${error.message}`);
+                });
 
             return vatData;
+        } catch (error) {
+            console.error(error)
+        }
 
-      
+
+
     }
 }
 

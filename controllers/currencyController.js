@@ -5,7 +5,7 @@ const webScrapService = require('../services/webScrapService');
 const currencyController = {
     getCurrencyRates: async (req,res,next)=>{
         try {
-            const results = await webScrapService.getForex();
+            const results = await webScrapService.fetchDollarRate();
             return responseUtil.sendSuccess(res,{results})
         } catch (error) {
             next(error)

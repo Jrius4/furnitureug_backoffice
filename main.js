@@ -23,7 +23,7 @@ const connectDB = async () => {
 
 
 // app schedules
-cron.schedule("*/30 * * * *", ()=>{
+cron.schedule("15 8 * * *", ()=>{
 
     webScrapData.getForex();
     const currentDate = new Date();
