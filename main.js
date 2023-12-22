@@ -10,7 +10,7 @@ const app = express();
 // middleware, parsers, etc.
 app.use(express.json());
 // connect to Mongodb
-mongoose.set('strictQuery',false);
+// mongoose.set('strictQuery',false);
 const connectDB = async () => {
     try {
     await  mongoose.connect(config.database.url,{ useNewUrlParser: true, useUnifiedTopology: true })
